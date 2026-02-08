@@ -1,0 +1,5 @@
+MirrorSnap.Core/obj/*
+MirrorSnap.Core/bin/*
+
+MirrorSnap.xUnit/obj/*
+MirrorSnap.xUnit/bin/*

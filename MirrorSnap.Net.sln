@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MirrorSnap.Core", "MirrorSnap.Core\MirrorSnap.Core.csproj", "{D59AF1D8-67D8-4164-AD49-2C1F502E9819}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MirrorSnap.xUnit", "MirrorSnap.xUnit\MirrorSnap.xUnit.csproj", "{925445D5-B500-41BA-9B47-498D63944135}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D59AF1D8-67D8-4164-AD49-2C1F502E9819}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D59AF1D8-67D8-4164-AD49-2C1F502E9819}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D59AF1D8-67D8-4164-AD49-2C1F502E9819}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D59AF1D8-67D8-4164-AD49-2C1F502E9819}.Release|Any CPU.Build.0 = Release|Any CPU
+		{925445D5-B500-41BA-9B47-498D63944135}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{925445D5-B500-41BA-9B47-498D63944135}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{925445D5-B500-41BA-9B47-498D63944135}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{925445D5-B500-41BA-9B47-498D63944135}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
