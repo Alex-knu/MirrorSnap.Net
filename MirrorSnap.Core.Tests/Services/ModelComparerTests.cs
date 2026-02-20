@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using MirrorSnap.Core.Models;
 using MirrorSnap.Core.Services;
 using MirrorSnap.Core.Tests.Models.TestModels;
@@ -372,11 +375,11 @@ namespace MirrorSnap.Core.Tests.Services
             // we simply want to ensure each logical property is reported at least
             // once and that the total count is no less than the number of
             // expected properties.
-            string[] expectedProperties =
-            [
+            var expectedProperties = new[]
+            {
                 "GuidValue", "DateTimeValue", "DateTimeOffsetValue",
                 "TimeSpanValue", "DateOnlyValue", "TimeOnlyValue", "EnumValue"
-            ];
+            };
 
             Assert.True(errors.Count == expectedProperties.Length,
                 $"Expected exactly {expectedProperties.Length} errors but got {errors.Count}");
