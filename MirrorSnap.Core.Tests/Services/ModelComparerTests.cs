@@ -386,7 +386,7 @@ namespace MirrorSnap.Core.Tests.Services
 
             foreach (var prop in expectedProperties)
             {
-                Assert.Contains(errors, e => e.Message.Contains(prop));
+                Assert.True(errors.Any(e => e.Message.Contains(prop)));
             }
         }
     }
