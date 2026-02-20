@@ -70,7 +70,7 @@ namespace MirrorSnap.Core.Services
 
         private Dictionary<string, PropertyInfo> BuildPropertyDictionary(Type type, string currentPath, SnapSettings settings)
         {
-            var result = new Dictionary<string, PropertyInfo>();
+            Dictionary<string, PropertyInfo> result = new Dictionary<string, PropertyInfo>();
             var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance)
                                  .Where(p => p.CanRead);
 
@@ -91,10 +91,10 @@ namespace MirrorSnap.Core.Services
 
         private void CompareCollections(IEnumerable actual, IEnumerable expected, SnapSettings settings, string currentPath)
         {
-            var actualList = actual.Cast<object>().ToList();
-            var expectedList = expected.Cast<object>().ToList();
+            List<object> actualList = actual.Cast<object>().ToList();
+            List<object> expectedList = expected.Cast<object>().ToList();
 
-            if (actualList.Count == expectedList.Count)
+            if (actualList.Count != expectedList.Count)
             {
                 throw new Exception($"Wrong collection count at path '{currentPath}'. Expected: {expectedList.Count}, Actual: {actualList.Count}");
             }
@@ -107,14 +107,17 @@ namespace MirrorSnap.Core.Services
             }
         }
 
-        private bool IsIgnored(string currentPath, IEnumerable<string> ignorePatterns)
-        {
-            return ignorePatterns?.Any(pattern => Regex.IsMatch(currentPath, pattern)) ?? false;
-        }
+        private bool IsIgnored(string currentPath, IEnumerable<string> ignorePatterns) => ignorePatterns?.Any(pattern => Regex.IsMatch(currentPath, pattern)) ?? false;
 
-        private bool IsPrimitiveType(Type type)
-        {
-            return type.IsPrimitive || type == typeof(string) || type == typeof(decimal);
-        }
+        private bool IsPrimitiveType(Type type) => type.IsPrimitive
+                                                   || type == typeof(string)
+                                                   || type == typeof(decimal)
+                                                   || type == typeof(IntPtr)
+                                                   || type == typeof(UIntPtr)
+                                                   || type.IsEnum
+                                                   || type == typeof(Guid)
+                                                   || type == typeof(DateTime)
+                                                   || type == typeof(DateTimeOffset)
+                                                   || type == typeof(TimeSpan);
     }
 }

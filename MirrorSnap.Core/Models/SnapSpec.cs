@@ -1,5 +1,3 @@
-using MirrorSnap.Core.Models;
-
 namespace MirrorSnap.Core.Models
 {
     public class SnapSpec<TEntity>

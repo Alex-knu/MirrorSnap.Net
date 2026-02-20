@@ -3,3 +3,6 @@ MirrorSnap.Core/bin/*
 
 MirrorSnap.xUnit/obj/*
 MirrorSnap.xUnit/bin/*
+
+MirrorSnap.Core.Tests/obj/*
+MirrorSnap.Core.Tests/bin/*
