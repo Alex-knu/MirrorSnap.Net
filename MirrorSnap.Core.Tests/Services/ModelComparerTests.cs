@@ -55,10 +55,10 @@ namespace MirrorSnap.Core.Tests.Services
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
 
             Assert.Equal(4, errors.Count);
-            Assert.Contains(errors, e => e.Message.Contains("IntValue"));
-            Assert.Contains(errors, e => e.Message.Contains("StringValue"));
-            Assert.Contains(errors, e => e.Message.Contains("BoolValue"));
-            Assert.Contains(errors, e => e.Message.Contains("DecimalValue"));
+            Assert.True(errors.Any(e => e.Message.Contains("IntValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("StringValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("BoolValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("DecimalValue")));
         }
 
         [Fact]
@@ -157,8 +157,8 @@ namespace MirrorSnap.Core.Tests.Services
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, settings).ToList();
             // only BoolValue and DecimalValue should be reported
             Assert.Equal(2, errors.Count);
-            Assert.DoesNotContain(errors, e => e.Message.Contains("StringValue"));
-            Assert.DoesNotContain(errors, e => e.Message.Contains("IntValue"));
+            Assert.False(errors.Any(e => e.Message.Contains("StringValue")));
+            Assert.False(errors.Any(e => e.Message.Contains("IntValue")));
         }
 
         [Fact]
@@ -299,18 +299,18 @@ namespace MirrorSnap.Core.Tests.Services
 
             // there should be one mismatch per property (12 total)
             Assert.Equal(12, errors.Count);
-            Assert.Contains(errors, e => e.Message.Contains("ByteValue"));
-            Assert.Contains(errors, e => e.Message.Contains("SByteValue"));
-            Assert.Contains(errors, e => e.Message.Contains("CharValue"));
-            Assert.Contains(errors, e => e.Message.Contains("DoubleValue"));
-            Assert.Contains(errors, e => e.Message.Contains("FloatValue"));
-            Assert.Contains(errors, e => e.Message.Contains("UIntValue"));
-            Assert.Contains(errors, e => e.Message.Contains("NIntValue"));
-            Assert.Contains(errors, e => e.Message.Contains("NUIntValue"));
-            Assert.Contains(errors, e => e.Message.Contains("LongValue"));
-            Assert.Contains(errors, e => e.Message.Contains("ULongValue"));
-            Assert.Contains(errors, e => e.Message.Contains("ShortValue"));
-            Assert.Contains(errors, e => e.Message.Contains("UShortValue"));
+            Assert.True(errors.Any(e => e.Message.Contains("ByteValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("SByteValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("CharValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("DoubleValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("FloatValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("UIntValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("NIntValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("NUIntValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("LongValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("ULongValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("ShortValue")));
+            Assert.True(errors.Any(e => e.Message.Contains("UShortValue")));
         }
 
         [Fact]
