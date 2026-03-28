@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 namespace MirrorSnap.Core.Tests.Models.TestModels
 {
     public class CollectionModel
     {
-        public List<PrimitiveModel>? Items { get; set; }
-        public PrimitiveModel[]? ArrayItems { get; set; }
+        public List<PrimitiveModel?>? Items { get; set; }
+        public PrimitiveModel?[]? ArrayItems { get; set; }
     }
 }
