@@ -19,6 +19,11 @@ namespace MirrorSnap.Core.Services
                 throw new ArgumentNullException("Models cannot be null.");
             }
 
+            if (settings == null)
+            {
+                throw new ArgumentNullException(nameof(settings));
+            }
+
             _errors = new List<ErrorMessage>();
             ComparePropertiesRecursive(actual, expected, settings, string.Empty);
 

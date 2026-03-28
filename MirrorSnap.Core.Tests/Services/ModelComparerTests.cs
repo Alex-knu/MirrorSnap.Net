@@ -9,6 +9,57 @@ namespace MirrorSnap.Core.Tests.Services
         private readonly ModelComparer _comparer = new();
 
         [Fact]
+        public void Compare_NullActual_ThrowsArgumentNullException()
+        {
+            PrimitiveModel? actual = null;
+            PrimitiveModel expected = new()
+            {
+                IntValue = 1,
+                StringValue = "foo",
+                BoolValue = true,
+                DecimalValue = 3.14m
+            };
+
+            Assert.Throws<ArgumentNullException>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+        }
+
+        [Fact]
+        public void Compare_NullExpected_ThrowsArgumentNullException()
+        {
+            PrimitiveModel actual = new()
+            {
+                IntValue = 1,
+                StringValue = "foo",
+                BoolValue = true,
+                DecimalValue = 3.14m
+            };
+            PrimitiveModel? expected = null;
+
+            Assert.Throws<ArgumentNullException>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+        }
+
+        [Fact]
+        public void Compare_NullSettings_ThrowsArgumentNullException()
+        {
+            PrimitiveModel actual = new()
+            {
+                IntValue = 1,
+                StringValue = "foo",
+                BoolValue = true,
+                DecimalValue = 3.14m
+            };
+            PrimitiveModel expected = new()
+            {
+                IntValue = 1,
+                StringValue = "foo",
+                BoolValue = true,
+                DecimalValue = 3.14m
+            };
+
+            Assert.Throws<ArgumentNullException>(() => _comparer.CompareModels(actual, expected, null!).ToList());
+        }
+
+        [Fact]
         public void Compare_PrimitivesEqual_NoErrors()
         {
             PrimitiveModel actual = new()
@@ -239,6 +290,98 @@ namespace MirrorSnap.Core.Tests.Services
         }
 
         [Fact]
+        public void Compare_IgnorePattern_IgnoresRootProperty()
+        {
+            NestedModel actual = new()
+            {
+                Name = "actual",
+                Inner = new PrimitiveModel
+                {
+                    IntValue = 10,
+                    StringValue = "same",
+                    BoolValue = true,
+                    DecimalValue = 1.0m
+                }
+            };
+            NestedModel expected = new()
+            {
+                Name = "expected",
+                Inner = new PrimitiveModel
+                {
+                    IntValue = 10,
+                    StringValue = "same",
+                    BoolValue = true,
+                    DecimalValue = 1.0m
+                }
+            };
+
+            SnapSettings settings = new()
+            {
+                IgnoreProperties = new[] { @"\.Name$" }
+            };
+
+            var errors = _comparer.CompareModels(actual, expected, settings);
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Compare_IgnorePattern_IgnoresWholeBranchButNotSiblings()
+        {
+            DeepModel actual = new()
+            {
+                Level1 = new NestedModel
+                {
+                    Name = "left",
+                    Inner = new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    }
+                },
+                Extra = new PrimitiveModel
+                {
+                    IntValue = 10,
+                    StringValue = "actual",
+                    BoolValue = false,
+                    DecimalValue = 2m
+                }
+            };
+            DeepModel expected = new()
+            {
+                Level1 = new NestedModel
+                {
+                    Name = "right",
+                    Inner = new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 3m
+                    }
+                },
+                Extra = new PrimitiveModel
+                {
+                    IntValue = 10,
+                    StringValue = "expected",
+                    BoolValue = false,
+                    DecimalValue = 2m
+                }
+            };
+
+            SnapSettings settings = new()
+            {
+                IgnoreProperties = new[] { @"\.Level1($|\.)" }
+            };
+
+            List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, settings).ToList();
+
+            Assert.Single(errors);
+            Assert.Contains(".Extra.StringValue", errors[0].Message);
+        }
+
+        [Fact]
         public void Compare_DeepNestedObjects_ReturnsDeepPathError()
         {
             DeepModel actual = new()
@@ -451,6 +594,180 @@ namespace MirrorSnap.Core.Tests.Services
         }
 
         [Fact]
+        public void Compare_CollectionsEqual_NoErrors()
+        {
+            CollectionModel actual = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+            CollectionModel expected = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            var errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() });
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Compare_ArrayCollectionsEqual_NoErrors()
+        {
+            CollectionModel actual = new()
+            {
+                ArrayItems =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+            CollectionModel expected = new()
+            {
+                ArrayItems =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            var errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() });
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Compare_CollectionsWithBothNullElements_NoErrors()
+        {
+            CollectionModel actual = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    null
+                ]
+            };
+            CollectionModel expected = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    null
+                ]
+            };
+
+            var errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() });
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Compare_CollectionsWithOneNullElement_ThrowsWithIndexedPath()
+        {
+            CollectionModel actual = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    null
+                ]
+            };
+            CollectionModel expected = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            var exception = Assert.Throws<Exception>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+            Assert.Contains(".Items[1]", exception.Message);
+        }
+
+        [Fact]
         public void Compare_CollectionsDifferentElement_ReturnsIndexedPathError()
         {
             CollectionModel actual = new()
@@ -499,6 +816,47 @@ namespace MirrorSnap.Core.Tests.Services
 
             Assert.Single(errors);
             Assert.Contains(".Items[1].StringValue", errors[0].Message);
+        }
+
+        [Fact]
+        public void Compare_ListCollectionsDifferentCount_Throws()
+        {
+            CollectionModel actual = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    }
+                ]
+            };
+            CollectionModel expected = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            var exception = Assert.Throws<Exception>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+            Assert.Contains(".Items", exception.Message);
         }
 
         [Fact]
