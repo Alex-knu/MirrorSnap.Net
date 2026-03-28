@@ -6,8 +6,6 @@ namespace MirrorSnap.Core.Tests.Models.TestModels
         public DateTime DateTimeValue { get; set; }
         public DateTimeOffset DateTimeOffsetValue { get; set; }
         public TimeSpan TimeSpanValue { get; set; }
-        public DateOnly DateOnlyValue { get; set; }
-        public TimeOnly TimeOnlyValue { get; set; }
         public ExampleEnum EnumValue { get; set; }
     }
 }
