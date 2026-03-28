@@ -19,6 +19,7 @@ namespace MirrorSnap.Core.Services
                 throw new ArgumentNullException("Models cannot be null.");
             }
 
+            _errors = new List<ErrorMessage>();
             ComparePropertiesRecursive(actual, expected, settings, string.Empty);
 
             return _errors;
@@ -26,6 +27,16 @@ namespace MirrorSnap.Core.Services
 
         private void ComparePropertiesRecursive(object actual, object expected, SnapSettings settings, string currentPath)
         {
+            if (actual == null && expected == null)
+            {
+                return;
+            }
+
+            if (actual == null || expected == null)
+            {
+                throw new Exception($"Null mismatch at path '{currentPath}'. Expected: {(expected == null ? "null" : expected)}, Actual: {(actual == null ? "null" : actual)}");
+            }
+
             var actualType = actual.GetType();
             var expectedType = expected.GetType();
 

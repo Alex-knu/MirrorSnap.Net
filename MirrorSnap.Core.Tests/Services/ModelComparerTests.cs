@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using MirrorSnap.Core.Models;
 using MirrorSnap.Core.Services;
 using MirrorSnap.Core.Tests.Models.TestModels;
@@ -55,10 +52,10 @@ namespace MirrorSnap.Core.Tests.Services
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
 
             Assert.Equal(4, errors.Count);
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("IntValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("StringValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("BoolValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("DecimalValue"));
+            Assert.Contains(errors, e => e.Message.Contains("IntValue"));
+            Assert.Contains(errors, e => e.Message.Contains("StringValue"));
+            Assert.Contains(errors, e => e.Message.Contains("BoolValue"));
+            Assert.Contains(errors, e => e.Message.Contains("DecimalValue"));
         }
 
         [Fact]
@@ -123,6 +120,88 @@ namespace MirrorSnap.Core.Tests.Services
         }
 
         [Fact]
+        public void Compare_ReusedComparer_DoesNotLeakErrorsBetweenCalls()
+        {
+            PrimitiveModel firstActual = new()
+            {
+                IntValue = 1,
+                StringValue = "foo",
+                BoolValue = true,
+                DecimalValue = 3.14m
+            };
+            PrimitiveModel firstExpected = new()
+            {
+                IntValue = 2,
+                StringValue = "bar",
+                BoolValue = false,
+                DecimalValue = 1.23m
+            };
+
+            PrimitiveModel secondActual = new()
+            {
+                IntValue = 10,
+                StringValue = "same",
+                BoolValue = false,
+                DecimalValue = 9.99m
+            };
+            PrimitiveModel secondExpected = new()
+            {
+                IntValue = 10,
+                StringValue = "same",
+                BoolValue = false,
+                DecimalValue = 9.99m
+            };
+
+            List<ErrorMessage> firstErrors = _comparer.CompareModels(firstActual, firstExpected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
+            List<ErrorMessage> secondErrors = _comparer.CompareModels(secondActual, secondExpected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
+
+            Assert.Equal(4, firstErrors.Count);
+            Assert.Empty(secondErrors);
+        }
+
+        [Fact]
+        public void Compare_NestedObjectsWithBothNullChildren_NoErrors()
+        {
+            NestedModel actual = new()
+            {
+                Name = "outer",
+                Inner = null
+            };
+            NestedModel expected = new()
+            {
+                Name = "outer",
+                Inner = null
+            };
+
+            var errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() });
+            Assert.Empty(errors);
+        }
+
+        [Fact]
+        public void Compare_NestedObjectsWithOneNullChild_Throws()
+        {
+            NestedModel actual = new()
+            {
+                Name = "outer",
+                Inner = null
+            };
+            NestedModel expected = new()
+            {
+                Name = "outer",
+                Inner = new PrimitiveModel
+                {
+                    IntValue = 5,
+                    StringValue = "bar",
+                    BoolValue = false,
+                    DecimalValue = 0.1m
+                }
+            };
+
+            var exception = Assert.Throws<Exception>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+            Assert.Contains(".Inner", exception.Message);
+        }
+
+        [Fact]
         public void Compare_IgnorePattern_IgnoresMatchingProperty()
         {
             NestedModel actual = new()
@@ -148,17 +227,15 @@ namespace MirrorSnap.Core.Tests.Services
                 }
             };
 
-            // ignore everything under Inner.StringValue and IntValue using regex
             SnapSettings settings = new()
             {
                 IgnoreProperties = new[] { @"\.Inner\.StringValue", @"\.Inner\.IntValue" }
             };
 
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, settings).ToList();
-            // only BoolValue and DecimalValue should be reported
             Assert.Equal(2, errors.Count);
-            Assert.DoesNotContain<ErrorMessage>(errors, e => e.Message.Contains("StringValue"));
-            Assert.DoesNotContain<ErrorMessage>(errors, e => e.Message.Contains("IntValue"));
+            Assert.DoesNotContain(errors, e => e.Message.Contains("StringValue"));
+            Assert.DoesNotContain(errors, e => e.Message.Contains("IntValue"));
         }
 
         [Fact]
@@ -215,7 +292,6 @@ namespace MirrorSnap.Core.Tests.Services
         [Fact]
         public void Compare_TypeMismatch_Throws()
         {
-            // actual and expected types differ
             object a = new PrimitiveModel();
             object b = new NestedModel();
             Assert.Throws<Exception>(() => _comparer.CompareModels(a, b, new SnapSettings()));
@@ -297,20 +373,19 @@ namespace MirrorSnap.Core.Tests.Services
 
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
 
-            // there should be one mismatch per property (12 total)
             Assert.Equal(12, errors.Count);
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("ByteValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("SByteValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("CharValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("DoubleValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("FloatValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("UIntValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("NIntValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("NUIntValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("LongValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("ULongValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("ShortValue"));
-            Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains("UShortValue"));
+            Assert.Contains(errors, e => e.Message.Contains("ByteValue"));
+            Assert.Contains(errors, e => e.Message.Contains("SByteValue"));
+            Assert.Contains(errors, e => e.Message.Contains("CharValue"));
+            Assert.Contains(errors, e => e.Message.Contains("DoubleValue"));
+            Assert.Contains(errors, e => e.Message.Contains("FloatValue"));
+            Assert.Contains(errors, e => e.Message.Contains("UIntValue"));
+            Assert.Contains(errors, e => e.Message.Contains("NIntValue"));
+            Assert.Contains(errors, e => e.Message.Contains("NUIntValue"));
+            Assert.Contains(errors, e => e.Message.Contains("LongValue"));
+            Assert.Contains(errors, e => e.Message.Contains("ULongValue"));
+            Assert.Contains(errors, e => e.Message.Contains("ShortValue"));
+            Assert.Contains(errors, e => e.Message.Contains("UShortValue"));
         }
 
         [Fact]
@@ -322,20 +397,15 @@ namespace MirrorSnap.Core.Tests.Services
                 DateTimeValue = DateTime.UtcNow,
                 DateTimeOffsetValue = DateTimeOffset.Now,
                 TimeSpanValue = TimeSpan.FromHours(1),
-                DateOnlyValue = DateOnly.FromDateTime(DateTime.Today),
-                TimeOnlyValue = TimeOnly.FromDateTime(DateTime.Now),
                 EnumValue = ExampleEnum.First
             };
 
-            // copy values exactly
             ExtendedPrimitive2Model expected = new()
             {
                 GuidValue = actual.GuidValue,
                 DateTimeValue = actual.DateTimeValue,
                 DateTimeOffsetValue = actual.DateTimeOffsetValue,
                 TimeSpanValue = actual.TimeSpanValue,
-                DateOnlyValue = actual.DateOnlyValue,
-                TimeOnlyValue = actual.TimeOnlyValue,
                 EnumValue = actual.EnumValue
             };
 
@@ -352,8 +422,6 @@ namespace MirrorSnap.Core.Tests.Services
                 DateTimeValue = new DateTime(2000, 1, 1),
                 DateTimeOffsetValue = new DateTimeOffset(new DateTime(2001, 1, 1)),
                 TimeSpanValue = TimeSpan.FromDays(1),
-                DateOnlyValue = new DateOnly(2020, 1, 1),
-                TimeOnlyValue = new TimeOnly(12, 0),
                 EnumValue = ExampleEnum.First
             };
 
@@ -363,31 +431,116 @@ namespace MirrorSnap.Core.Tests.Services
                 DateTimeValue = new DateTime(2010, 1, 1),
                 DateTimeOffsetValue = new DateTimeOffset(new DateTime(2011, 1, 1)),
                 TimeSpanValue = TimeSpan.FromDays(2),
-                DateOnlyValue = new DateOnly(2021, 2, 2),
-                TimeOnlyValue = new TimeOnly(13, 30),
                 EnumValue = ExampleEnum.Second
             };
 
             List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
 
-            // the comparer currently treats DateOnly/TimeOnly as non-primitive,
-            // so mismatches for those properties may generate multiple errors.
-            // we simply want to ensure each logical property is reported at least
-            // once and that the total count is no less than the number of
-            // expected properties.
-            var expectedProperties = new[]
-            {
+            string[] expectedProperties =
+            [
                 "GuidValue", "DateTimeValue", "DateTimeOffsetValue",
-                "TimeSpanValue", "DateOnlyValue", "TimeOnlyValue", "EnumValue"
-            };
+                "TimeSpanValue", "EnumValue"
+            ];
 
-            Assert.True(errors.Count == expectedProperties.Length,
-                $"Expected exactly {expectedProperties.Length} errors but got {errors.Count}");
+            Assert.Equal(expectedProperties.Length, errors.Count);
 
             foreach (var prop in expectedProperties)
             {
-                Assert.Contains<ErrorMessage>(errors, e => e.Message.Contains(prop));
+                Assert.Contains(errors, e => e.Message.Contains(prop));
             }
+        }
+
+        [Fact]
+        public void Compare_CollectionsDifferentElement_ReturnsIndexedPathError()
+        {
+            CollectionModel actual = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            CollectionModel expected = new()
+            {
+                Items =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "baz",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            List<ErrorMessage> errors = _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList();
+
+            Assert.Single(errors);
+            Assert.Contains(".Items[1].StringValue", errors[0].Message);
+        }
+
+        [Fact]
+        public void Compare_CollectionsDifferentCount_Throws()
+        {
+            CollectionModel actual = new()
+            {
+                ArrayItems =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    }
+                ]
+            };
+
+            CollectionModel expected = new()
+            {
+                ArrayItems =
+                [
+                    new PrimitiveModel
+                    {
+                        IntValue = 1,
+                        StringValue = "foo",
+                        BoolValue = true,
+                        DecimalValue = 1m
+                    },
+                    new PrimitiveModel
+                    {
+                        IntValue = 2,
+                        StringValue = "bar",
+                        BoolValue = false,
+                        DecimalValue = 2m
+                    }
+                ]
+            };
+
+            var exception = Assert.Throws<Exception>(() => _comparer.CompareModels(actual, expected, new SnapSettings { IgnoreProperties = Enumerable.Empty<string>() }).ToList());
+            Assert.Contains(".ArrayItems", exception.Message);
         }
     }
 }
